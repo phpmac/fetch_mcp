@@ -1,0 +1,31 @@
+{
+  "name": "fetch",
+  "version": "1.0.0",
+  "description": "mcp server for fetch",
+  "type": "module",
+  "license": "MIT",
+  "author": "zcaceres (@zachcaceres zach.dev)",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "bun run src/index.ts"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@koa/router": "^13.1.0",
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "@types/koa": "^2.15.0",
+    "@types/koa__router": "^12.0.4",
+    "jsdom": "^25.0.1",
+    "koa": "^2.16.1",
+    "turndown": "^7.2.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^22.14.0",
+    "@types/turndown": "^5.0.5",
+    "bun-types": "^1.2.8",
+    "typescript": "^5.8.3"
+  }
+}
