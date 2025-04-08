@@ -7,8 +7,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "start": "bun run dist/index.js",
-    "dev:start": "tsc --watch & bun run --watch dist/index.js"
+    "start": "bun dist/index.js",
+    "dev:start": "tsc --watch & bun --watch dist/index.js"
   },
   "keywords": [],
   "dependencies": {
