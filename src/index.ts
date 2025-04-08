@@ -1,21 +1,15 @@
-import Koa from "koa";
-import Router from "@koa/router";
-import type { Context } from "koa";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
+import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { RequestPayloadSchema } from "./types.js";
 import { Fetcher } from "./Fetcher.js";
+import express from "express";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 
-const app = new Koa();
-const router = new Router();
+const app = express();
 
 const server = new Server(
   {
-    name: "mcp/fetch",
+    name: "zcaceres/fetch",
     version: "0.1.0",
   },
   {
@@ -23,7 +17,7 @@ const server = new Server(
       resources: {},
       tools: {},
     },
-  },
+  }
 );
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -67,8 +61,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "fetch_txt",
-        description:
-          "Fetch a website, return the content as plain text (no HTML)",
+        description: "Fetch a website, return the content as plain text (no HTML)",
         inputSchema: {
           type: "object",
           properties: {
@@ -132,30 +125,50 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 let transport: SSEServerTransport | null = null;
 
-router.get("/sse", async (ctx: Context) => {
-  // 设置 SSE 所需的响应头
-  ctx.set({
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
-    'X-Accel-Buffering': 'no'
-  });
+// 添加重连和错误处理
+const connectTransport = (res: express.Response) => {
+  try {
+    transport = new SSEServerTransport("/messages", res);
+    server.connect(transport);
 
-  transport = new SSEServerTransport("/messages", ctx.res);
-  await server.connect(transport);
-  ctx.status = 200;
-});
+    transport.onerror = (error) => {
+      console.error("Transport error:", error);
+      transport = null;
+    };
 
-router.post("/messages", async (ctx: Context) => {
-  if (transport) {
-    transport.handlePostMessage(ctx.req, ctx.res);
+    return true;
+  } catch (error) {
+    console.error("Failed to create transport:", error);
+    return false;
   }
-  ctx.status = 200;
+};
+
+app.get("/sse", (req, res) => {
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("Cache-Control", "no-cache");
+
+  if (!connectTransport(res)) {
+    res.status(500).send("Failed to establish SSE connection");
+    return;
+  }
 });
 
-// 使用路由中间件
-app.use(router.routes()).use(router.allowedMethods());
+app.post("/messages", (req, res) => {
+  if (!transport) {
+    res.status(503).send("Transport not available");
+    return;
+  }
 
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+  try {
+    transport.handlePostMessage(req, res);
+  } catch (error) {
+    console.error("Error handling post message:", error);
+    res.status(500).send("Internal server error");
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

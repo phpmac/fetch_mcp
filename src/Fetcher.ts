@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom";
 import TurndownService from "turndown";
-import { RequestPayload } from "./types.js";
+import type { RequestPayload } from "./types.js";
 
 export class Fetcher {
   private static async _fetch({
