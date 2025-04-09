@@ -5,10 +5,10 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "bun build src/index.ts --target node --outdir dist",
+    "dev": "bun --watch src/index.ts",
     "start": "bun dist/index.js",
-    "dev:start": "tsc --watch & bun --watch dist/index.js"
+    "dev:start": "bun --watch src/index.ts"
   },
   "keywords": [],
   "dependencies": {
